@@ -1,11 +1,9 @@
-type OrdersMatchedEntity @entity {
+type Sale @entity {
   id: ID!
-  transactionHash: Bytes! 
   blockNumber: BigInt!
-  buyHash: Bytes!
-  sellHash: Bytes!
-  maker: Bytes!
-  taker: Bytes!
   price: BigInt!
-  metadata: Bytes
+  seller: Bytes
+  buyer: Bytes
+  collection: Bytes
+  tokenId: BigInt
 }
