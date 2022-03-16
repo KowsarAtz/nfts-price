@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import { OrdersMatched } from "../generated/OpenseaExchange/OpenseaExchange"
 import { Transfer } from './../generated/ERC721/ERC721';
 import { Sale } from "./schema"

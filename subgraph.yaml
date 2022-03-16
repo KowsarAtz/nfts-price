@@ -8,7 +8,7 @@ dataSources:
     source:
       abi: OpenseaExchange
       # startBlock: 5774644
-      startBlock: 14391622
+      startBlock: 13829607
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -28,7 +28,7 @@ dataSources:
     source:
       abi: ERC721
       # startBlock: 5774644
-      startBlock: 14391622
+      startBlock: 13829607
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5

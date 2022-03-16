@@ -5,6 +5,7 @@ import {
   store,
   Bytes,
   BigInt,
+  log
 } from "@graphprotocol/graph-ts";
 
 import { OrdersMatched } from '../generated/OpenseaExchange/OpenseaExchange';
@@ -22,6 +23,9 @@ export class Sale extends Entity {
   saveTransferData(event: Transfer): void {
     this.seller = event.params.from;
     this.buyer = event.params.to;
+
+    if (this.get("tokenId") != null || this.get("collection") != null)
+      log.warning(`Sale ${this.id} token info to be overwritten`, [])
     this.tokenId = event.params.tokenId;
     this.collection = event.address;
   }
@@ -29,8 +33,11 @@ export class Sale extends Entity {
   saveOrdersMatchedData(event: OrdersMatched): void {
     this.buyHash = event.params.buyHash;
     this.sellHash = event.params.sellHash;
-    this.price = event.params.price;
     this.metadata = event.params.metadata;
+
+    if (this.get("price") != null)
+      log.warning(`Sale ${this.id} price to be overwritten`, [])
+    this.price = event.params.price;
   }
 
   save(): void {
