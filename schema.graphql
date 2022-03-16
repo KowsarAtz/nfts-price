@@ -1,9 +1,15 @@
 type Sale @entity {
   id: ID!
   blockNumber: BigInt!
-  price: BigInt!
+  timestamp: BigInt!
+
+  collection: Bytes
   seller: Bytes
   buyer: Bytes
-  collection: Bytes
   tokenId: BigInt
+  
+  buyHash: Bytes
+  sellHash: Bytes
+  price: BigInt
+  metadata: Bytes
 }

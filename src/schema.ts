@@ -1,6 +1,3 @@
-import { OrdersMatched } from '../generated/OpenseaExchange/OpenseaExchange';
-import { Transfer } from '../generated/ERC721/ERC721';
-
 import {
   Entity,
   Value,
@@ -10,20 +7,30 @@ import {
   BigInt,
 } from "@graphprotocol/graph-ts";
 
+import { OrdersMatched } from '../generated/OpenseaExchange/OpenseaExchange';
+import { Transfer } from '../generated/ERC721/ERC721';
+
 export class Sale extends Entity {
 
-  constructor(id: string, event: OrdersMatched) {
+  constructor(id: string, blockNumber: BigInt, timestamp: BigInt) {
     super();
     this.id = id;
-    this.blockNumber = event.block.number;
-    this.price = event.params.price;
+    this.blockNumber = blockNumber;
+    this.timestamp = timestamp;
   }
 
-  saveTokenData(event: Transfer): void {
+  saveTransferData(event: Transfer): void {
     this.seller = event.params.from;
     this.buyer = event.params.to;
     this.tokenId = event.params.tokenId;
     this.collection = event.address;
+  }
+
+  saveOrdersMatchedData(event: OrdersMatched): void {
+    this.buyHash = event.params.buyHash;
+    this.sellHash = event.params.sellHash;
+    this.price = event.params.price;
+    this.metadata = event.params.metadata;
   }
 
   save(): void {
@@ -51,6 +58,69 @@ export class Sale extends Entity {
     this.set("id", Value.fromString(value));
   }
 
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    return value!.toBigInt();
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    return value!.toBigInt();
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
+  }
+
+  get buyHash(): Bytes {
+    let value = this.get("buyHash");
+    return value!.toBytes();
+  }
+
+  set buyHash(value: Bytes) {
+    this.set("buyHash", Value.fromBytes(value));
+  }
+
+  get sellHash(): Bytes {
+    let value = this.get("sellHash");
+    return value!.toBytes();
+  }
+
+  set sellHash(value: Bytes) {
+    this.set("sellHash", Value.fromBytes(value));
+  }
+  
+  get price(): BigInt {
+    let value = this.get("price");
+    return value!.toBigInt();
+  }
+
+  set price(value: BigInt) {
+    this.set("price", Value.fromBigInt(value));
+  }
+  
+  get metadata(): Bytes {
+    let value = this.get("metadata");
+    return value!.toBytes();
+  }
+
+  set metadata(value: Bytes) {
+    this.set("metadata", Value.fromBytes(value));
+  }
+  
+  get collection(): Bytes {
+    let value = this.get("collection");
+    return value!.toBytes();
+  }
+
+  set collection(value: Bytes) {
+    this.set("collection", Value.fromBytes(value));
+  }
+  
   get seller(): Bytes {
     let value = this.get("seller");
     return value!.toBytes();
@@ -69,24 +139,6 @@ export class Sale extends Entity {
     this.set("buyer", Value.fromBytes(value));
   }
 
-  get price(): BigInt {
-    let value = this.get("price");
-    return value!.toBigInt();
-  }
-
-  set price(value: BigInt) {
-    this.set("price", Value.fromBigInt(value));
-  }
-
-  get blockNumber(): BigInt {
-    let value = this.get("blockNumber");
-    return value!.toBigInt();
-  }
-
-  set blockNumber(value: BigInt) {
-    this.set("blockNumber", Value.fromBigInt(value));
-  }
-
   get tokenId(): BigInt {
     let value = this.get("tokenId");
     return value!.toBigInt();
@@ -96,12 +148,4 @@ export class Sale extends Entity {
     this.set("tokenId", Value.fromBigInt(value));
   }
 
-  get collection(): Bytes {
-    let value = this.get("collection");
-    return value!.toBytes();
-  }
-
-  set collection(value: Bytes) {
-    this.set("collection", Value.fromBytes(value));
-  }
 }
