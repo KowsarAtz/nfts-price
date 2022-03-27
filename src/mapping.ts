@@ -1,72 +1,57 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
-import { OrdersMatched } from "../generated/OpenseaExchange/OpenseaExchange"
-import { Transfer } from './../generated/ERC721/ERC721';
-import { Transfer as BasicTransfer } from './../generated/BasicERC721/BasicERC721';
-import { Sale } from "./schema"
+import { OrdersMatched } from "../generated/OpenseaExchange/OpenseaExchange";
+import { Transfer as TransferEvent } from "./../generated/ERC721/ERC721";
+import { Sale, Transfer } from "./schema";
 
 const ONE = BigInt.fromString("1");
 const nullAddress = "0x0000000000000000000000000000000000000000";
 
 export function handleOrdersMatched(event: OrdersMatched): void {
-  const id = `${event.transaction.hash.toHexString()}:${BigInt.fromString(event.logIndex.toString()).minus(ONE)}`;
-  let entity: Sale | null = Sale.load(id);
-  if (entity == null) {
-    entity = new Sale(id, event.block.number, event.block.timestamp);
-    log.info(`Sale ${id} to be instantiated by OrdersMatched event data`, []);
-  }
-  else {
-    log.info(`Sale ${id} to be completed by OrdersMatched event data`, []);
-  }
-  entity.saveOrdersMatchedData(event);
-  entity.save();
+    const id = `${event.transaction.hash.toHexString()}:${event.logIndex}`;
+    const transferId = `${event.transaction.hash.toHexString()}:${BigInt.fromString(
+        event.logIndex.toString()
+    ).minus(ONE)}`;
+
+    if (Transfer.load(transferId) == null) {
+        log.debug(
+            `Transfer ${transferId} not found. OrdersMatched event ignored`,
+            []
+        );
+        return;
+    }
+
+    if (Sale.load(id) != null) {
+        log.warning(`Sale ${id} already exists`, []);
+        return;
+    }
+
+    new Sale(id, transferId, event).save();
+    log.info(`Sale ${id} stored`, []);
 }
 
-export function handleTransfer(event: Transfer): void {
-  const id = `${event.transaction.hash.toHexString()}:${event.logIndex}`;
-  let entity: Sale | null = Sale.load(id);
-  if (entity == null) {
+export function handleTransfer(event: TransferEvent): void {
+    const id = `${event.transaction.hash.toHexString()}:${event.logIndex}`;
 
-    if(event.params.from.toHexString().toLowerCase() == nullAddress) {
-      log.debug(`Transfer ${id} ignored since it corresponds to a mint event`, []);
-      return;
+    if (Transfer.load(id) != null) {
+        log.warning(`Transfer ${id} already exists`, []);
+        return;
     }
 
-    if(event.params.to.toHexString().toLowerCase() == nullAddress) {
-      log.debug(`Transfer ${id} ignored since it corresponds to a burn event`, []);
-      return;
+    if (event.params.from.toHexString().toLowerCase() == nullAddress) {
+        log.debug(
+            `Transfer ${id} ignored since it corresponds to a mint event`,
+            []
+        );
+        return;
     }
 
-    entity = new Sale(id, event.block.number, event.block.timestamp);
-    log.info(`Sale ${id} to be instantiated by Transfer event data`, []);
-  }
-  else {
-    log.info(`Sale ${id} to be completed by Transfer event data`, []);
-  }
-  entity.saveTransferData(event);
-  entity.save();
-}
-
-export function handleBasicTransfer(event: BasicTransfer): void {
-  const id = `${event.transaction.hash.toHexString()}:${event.logIndex}`;
-  let entity: Sale | null = Sale.load(id);
-  if (entity == null) {
-
-    if(event.params._from.toHexString().toLowerCase() == nullAddress) {
-      log.debug(`Transfer ${id} ignored since it corresponds to a mint event`, []);
-      return;
+    if (event.params.to.toHexString().toLowerCase() == nullAddress) {
+        log.debug(
+            `Transfer ${id} ignored since it corresponds to a burn event`,
+            []
+        );
+        return;
     }
-
-    if(event.params._to.toHexString().toLowerCase() == nullAddress) {
-      log.debug(`Transfer ${id} ignored since it corresponds to a burn event`, []);
-      return;
-    }
-
-    entity = new Sale(id, event.block.number, event.block.timestamp);
-    log.info(`Sale ${id} to be instantiated by Transfer event data`, []);
-  }
-  else {
-    log.info(`Sale ${id} to be completed by Transfer event data`, []);
-  }
-  entity.saveBasicTransferData(event);
-  entity.save();
+    new Transfer(id, event).save();
+    log.info(`Transfer ${id} stored`, []);
 }

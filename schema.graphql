@@ -1,16 +1,19 @@
 type Sale @entity {
-  id: ID!
-  blockNumber: BigInt!
-  timestamp: BigInt!
+    id: ID!
+    transfer: Transfer!
+    exchange: Bytes!
+    buyHash: Bytes!
+    sellHash: Bytes!
+    price: BigInt!
+    metadata: Bytes
+}
 
-  collection: Bytes
-  seller: Bytes
-  buyer: Bytes
-  tokenId: BigInt
-  
-  exchange: Bytes
-  buyHash: Bytes
-  sellHash: Bytes
-  price: BigInt
-  metadata: Bytes
+type Transfer @entity {
+    id: ID!
+    blockNumber: BigInt!
+    timestamp: BigInt!
+    collection: Bytes!
+    seller: Bytes!
+    buyer: Bytes!
+    tokenId: BigInt!
 }
