@@ -8,6 +8,7 @@ type Sale @entity {
   buyer: Bytes
   tokenId: BigInt
   
+  exchange: Bytes
   buyHash: Bytes
   sellHash: Bytes
   price: BigInt

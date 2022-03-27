@@ -7,8 +7,7 @@ dataSources:
     network: mainnet
     source:
       abi: OpenseaExchange
-      # startBlock: 5774644
-      startBlock: 13829607
+      startBlock: 5220383
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -27,8 +26,7 @@ dataSources:
     network: mainnet
     source:
       abi: ERC721
-      # startBlock: 5774644
-      startBlock: 13829607
+      startBlock: 5220383
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -41,4 +39,23 @@ dataSources:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
+      file: ./src/mapping.ts
+  - kind: ethereum
+    name: BasicERC721
+    network: mainnet
+    source:
+      abi: BasicERC721
+      startBlock: 5220383
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Sale
+      abis:
+        - name: BasicERC721
+          file: ./abis/BasicERC721.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleBasicTransfer
       file: ./src/mapping.ts

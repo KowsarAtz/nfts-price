@@ -1,6 +1,7 @@
 import { BigInt, log } from "@graphprotocol/graph-ts";
 import { OrdersMatched } from "../generated/OpenseaExchange/OpenseaExchange"
 import { Transfer } from './../generated/ERC721/ERC721';
+import { Transfer as BasicTransfer } from './../generated/BasicERC721/BasicERC721';
 import { Sale } from "./schema"
 
 const ONE = BigInt.fromString("1");
@@ -42,5 +43,30 @@ export function handleTransfer(event: Transfer): void {
     log.info(`Sale ${id} to be completed by Transfer event data`, []);
   }
   entity.saveTransferData(event);
+  entity.save();
+}
+
+export function handleBasicTransfer(event: BasicTransfer): void {
+  const id = `${event.transaction.hash.toHexString()}:${event.logIndex}`;
+  let entity: Sale | null = Sale.load(id);
+  if (entity == null) {
+
+    if(event.params._from.toHexString().toLowerCase() == nullAddress) {
+      log.debug(`Transfer ${id} ignored since it corresponds to a mint event`, []);
+      return;
+    }
+
+    if(event.params._to.toHexString().toLowerCase() == nullAddress) {
+      log.debug(`Transfer ${id} ignored since it corresponds to a burn event`, []);
+      return;
+    }
+
+    entity = new Sale(id, event.block.number, event.block.timestamp);
+    log.info(`Sale ${id} to be instantiated by Transfer event data`, []);
+  }
+  else {
+    log.info(`Sale ${id} to be completed by Transfer event data`, []);
+  }
+  entity.saveBasicTransferData(event);
   entity.save();
 }

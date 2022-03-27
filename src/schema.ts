@@ -10,6 +10,7 @@ import {
 
 import { OrdersMatched } from '../generated/OpenseaExchange/OpenseaExchange';
 import { Transfer } from '../generated/ERC721/ERC721';
+import { Transfer as BasicTransfer } from '../generated/BasicERC721/BasicERC721';
 
 export class Sale extends Entity {
 
@@ -30,7 +31,18 @@ export class Sale extends Entity {
     this.collection = event.address;
   }
 
+  saveBasicTransferData(event: BasicTransfer): void {
+    this.seller = event.params._from;
+    this.buyer = event.params._to;
+
+    if (this.get("tokenId") != null || this.get("collection") != null)
+      log.warning(`Sale ${this.id} token info to be overwritten`, [])
+    this.tokenId = event.params._tokenId;
+    this.collection = event.address;
+  }
+  
   saveOrdersMatchedData(event: OrdersMatched): void {
+    this.exchange = event.address;
     this.buyHash = event.params.buyHash;
     this.sellHash = event.params.sellHash;
     this.metadata = event.params.metadata;
@@ -81,6 +93,15 @@ export class Sale extends Entity {
 
   set timestamp(value: BigInt) {
     this.set("timestamp", Value.fromBigInt(value));
+  }
+
+  get exchange(): Bytes {
+    let value = this.get("exchange");
+    return value!.toBytes();
+  }
+
+  set exchange(value: Bytes) {
+    this.set("exchange", Value.fromBytes(value));
   }
 
   get buyHash(): Bytes {
