@@ -5,17 +5,22 @@ import {
     store,
     Bytes,
     BigInt,
-    log,
 } from "@graphprotocol/graph-ts";
 
 import { OrdersMatched } from "../generated/OpenseaExchange/OpenseaExchange";
 import { Transfer as TransferEvent } from "../generated/ERC721/ERC721";
 
 export class Sale extends Entity {
-    constructor(id: string, transfer: string, event: OrdersMatched) {
+    constructor(
+        id: string,
+        transfer: string,
+        token: string,
+        event: OrdersMatched
+    ) {
         super();
         this.id = id;
         this.transfer = transfer;
+        this.token = token;
         this.exchange = event.address;
         this.buyHash = event.params.buyHash;
         this.sellHash = event.params.sellHash;
@@ -55,6 +60,15 @@ export class Sale extends Entity {
 
     set transfer(value: string) {
         this.set("transfer", Value.fromString(value));
+    }
+
+    get token(): string {
+        let value = this.get("token");
+        return value!.toString();
+    }
+
+    set token(value: string) {
+        this.set("token", Value.fromString(value));
     }
 
     get exchange(): Bytes {
@@ -109,10 +123,10 @@ export class Transfer extends Entity {
         this.id = id;
         this.blockNumber = event.block.number;
         this.timestamp = event.block.timestamp;
-        this.seller = event.params.from;
-        this.buyer = event.params.to;
-        this.tokenId = event.params.tokenId;
-        this.collection = event.address;
+        this.from = event.params.from;
+        this.to = event.params.to;
+        this.value = event.params.tokenId;
+        this.address = event.address;
     }
 
     save(): void {
@@ -163,31 +177,98 @@ export class Transfer extends Entity {
         return value!.toBytes();
     }
 
-    get collection(): Bytes {
+    get address(): Bytes {
+        let value = this.get("address");
+        return value!.toBytes();
+    }
+
+    set address(value: Bytes) {
+        this.set("address", Value.fromBytes(value));
+    }
+
+    get from(): Bytes {
+        let value = this.get("from");
+        return value!.toBytes();
+    }
+
+    set from(value: Bytes) {
+        this.set("from", Value.fromBytes(value));
+    }
+
+    get to(): Bytes {
+        let value = this.get("to");
+        return value!.toBytes();
+    }
+
+    set to(value: Bytes) {
+        this.set("to", Value.fromBytes(value));
+    }
+
+    get value(): BigInt {
+        let value = this.get("value");
+        return value!.toBigInt();
+    }
+
+    set value(value: BigInt) {
+        this.set("value", Value.fromBigInt(value));
+    }
+}
+
+export class Token extends Entity {
+    constructor(
+        id: string,
+        collection: string,
+        uri: string | null,
+        tokenId: BigInt
+    ) {
+        super();
+        this.id = id;
+        this.collection = collection;
+        this.tokenId = tokenId;
+        if (uri != null) this.uri = uri!;
+    }
+
+    save(): void {
+        let id = this.get("id");
+        assert(id != null, "Cannot save Token entity without an ID");
+        if (id) {
+            assert(
+                id.kind == ValueKind.STRING,
+                `Entities of type Token must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+            );
+            store.set("Token", id.toString(), this);
+        }
+    }
+
+    static load(id: string): Token | null {
+        return changetype<Token | null>(store.get("Token", id));
+    }
+
+    get id(): string {
+        let value = this.get("id");
+        return value!.toString();
+    }
+
+    set id(value: string) {
+        this.set("id", Value.fromString(value));
+    }
+
+    get collection(): string {
         let value = this.get("collection");
-        return value!.toBytes();
+        return value!.toString();
     }
 
-    set collection(value: Bytes) {
-        this.set("collection", Value.fromBytes(value));
+    set collection(value: string) {
+        this.set("collection", Value.fromString(value));
     }
 
-    get seller(): Bytes {
-        let value = this.get("seller");
-        return value!.toBytes();
+    get uri(): string {
+        let value = this.get("uri");
+        return value!.toString();
     }
 
-    set seller(value: Bytes) {
-        this.set("seller", Value.fromBytes(value));
-    }
-
-    get buyer(): Bytes {
-        let value = this.get("buyer");
-        return value!.toBytes();
-    }
-
-    set buyer(value: Bytes) {
-        this.set("buyer", Value.fromBytes(value));
+    set uri(value: string) {
+        this.set("uri", Value.fromString(value));
     }
 
     get tokenId(): BigInt {
@@ -197,5 +278,57 @@ export class Transfer extends Entity {
 
     set tokenId(value: BigInt) {
         this.set("tokenId", Value.fromBigInt(value));
+    }
+}
+
+export class Collection extends Entity {
+    constructor(id: string, symbol: string | null, name: string | null) {
+        super();
+        this.id = id;
+        if (symbol != null) this.symbol = symbol!;
+        if (name != null) this.name = name!;
+    }
+
+    save(): void {
+        let id = this.get("id");
+        assert(id != null, "Cannot save Collection entity without an ID");
+        if (id) {
+            assert(
+                id.kind == ValueKind.STRING,
+                `Entities of type Collection must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+            );
+            store.set("Collection", id.toString(), this);
+        }
+    }
+
+    static load(id: string): Collection | null {
+        return changetype<Collection | null>(store.get("Collection", id));
+    }
+
+    get id(): string {
+        let value = this.get("id");
+        return value!.toString();
+    }
+
+    set id(value: string) {
+        this.set("id", Value.fromString(value));
+    }
+
+    get symbol(): string {
+        let value = this.get("symbol");
+        return value!.toString();
+    }
+
+    set symbol(value: string) {
+        this.set("symbol", Value.fromString(value));
+    }
+
+    get name(): string {
+        let value = this.get("name");
+        return value!.toString();
+    }
+
+    set name(value: string) {
+        this.set("name", Value.fromString(value));
     }
 }

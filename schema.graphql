@@ -1,6 +1,7 @@
 type Sale @entity {
     id: ID!
     transfer: Transfer!
+    token: Token!
     exchange: Bytes!
     buyHash: Bytes!
     sellHash: Bytes!
@@ -8,12 +9,27 @@ type Sale @entity {
     metadata: Bytes
 }
 
+type Collection @entity {
+    id: ID!
+    symbol: String
+    name: String
+    tokens: [Token!]! @derivedFrom(field: "collection")
+}
+
+type Token @entity {
+    id: ID!
+    collection: Collection!
+    tokenId: BigInt!
+    uri: String
+    sales: [Sale!]! @derivedFrom(field: "token")
+}
+
 type Transfer @entity {
     id: ID!
     blockNumber: BigInt!
     timestamp: BigInt!
-    collection: Bytes!
-    seller: Bytes!
-    buyer: Bytes!
-    tokenId: BigInt!
+    address: Bytes!
+    from: Bytes!
+    to: Bytes!
+    value: BigInt!
 }
