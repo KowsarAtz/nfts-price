@@ -1,5 +1,7 @@
 type Sale @entity {
     id: ID!
+    blockNumber: BigInt!
+    timestamp: BigInt!
     transfer: Transfer!
     token: Token!
     exchange: Bytes!

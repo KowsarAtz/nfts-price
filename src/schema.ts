@@ -19,6 +19,8 @@ export class Sale extends Entity {
     ) {
         super();
         this.id = id;
+        this.blockNumber = event.block.number;
+        this.timestamp = event.block.timestamp;
         this.transfer = transfer;
         this.token = token;
         this.exchange = event.address;
@@ -51,6 +53,24 @@ export class Sale extends Entity {
 
     set id(value: string) {
         this.set("id", Value.fromString(value));
+    }
+
+    get blockNumber(): BigInt {
+        let value = this.get("blockNumber");
+        return value!.toBigInt();
+    }
+
+    set blockNumber(value: BigInt) {
+        this.set("blockNumber", Value.fromBigInt(value));
+    }
+
+    get timestamp(): BigInt {
+        let value = this.get("timestamp");
+        return value!.toBigInt();
+    }
+
+    set timestamp(value: BigInt) {
+        this.set("timestamp", Value.fromBigInt(value));
     }
 
     get transfer(): string {
