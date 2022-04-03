@@ -7,7 +7,8 @@ dataSources:
     network: mainnet
     source:
       abi: OpenseaExchange
-      startBlock: 5774644
+      startBlock: 14507363
+      address: '0x7f268357A8c2552623316e2562D90e642bB538E5'
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -19,45 +20,13 @@ dataSources:
           file: ./abis/OpenseaExchange.json
         - name: ERC721
           file: ./abis/ERC721.json
+        - name: UniswapRouter
+          file: ./abis/UniswapRouter.json
       eventHandlers:
         - event: OrdersMatched(bytes32,bytes32,indexed address,indexed address,uint256,indexed bytes32)
           handler: handleOrdersMatched
+      callHandlers:
+        - function: atomicMatch_(address[14],uint256[18],uint8[8],bytes,bytes,bytes,bytes,bytes,bytes,uint8[2],bytes32[5])
+          handler: handleAtomicMatch
+
       file: ./src/mapping.ts
-  - kind: ethereum
-    name: ERC721
-    network: mainnet
-    source:
-      abi: ERC721
-      startBlock: 5774644
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - Sale
-      abis:
-        - name: ERC721
-          file: ./abis/ERC721.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,indexed uint256)
-          handler: handleTransfer
-      file: ./src/mapping.ts
-  # - kind: ethereum
-  #   name: BasicERC721
-  #   network: mainnet
-  #   source:
-  #     abi: BasicERC721
-  #     startBlock: 5220383
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.5
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - Sale
-  #     abis:
-  #       - name: BasicERC721
-  #         file: ./abis/BasicERC721.json
-  #     eventHandlers:
-  #       - event: Transfer(indexed address,indexed address,uint256)
-  #         handler: handleBasicTransfer
-  #     file: ./src/mapping.ts
