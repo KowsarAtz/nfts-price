@@ -1,37 +1,56 @@
 type Sale @entity {
-    id: ID!
+    id: ID! # txn hash : orders matched log index
     blockNumber: BigInt!
     timestamp: BigInt!
-    transfer: Transfer!
-    token: Token!
+    paymentToken: PaymentToken!
+    transaction: Transaction!
+    usdtPrice: BigInt!
+
+    collection: Bytes!
+    seller: Bytes!
+    buyer: Bytes!
+    tokenId: BigInt!
+
     exchange: Bytes!
     buyHash: Bytes!
     sellHash: Bytes!
+    maker: Bytes!
+    taker: Bytes!
     price: BigInt!
     metadata: Bytes
 }
 
-type Collection @entity {
-    id: ID!
-    symbol: String
-    name: String
-    tokens: [Token!]! @derivedFrom(field: "collection")
-}
-
-type Token @entity {
-    id: ID!
-    collection: Collection!
-    tokenId: BigInt!
-    uri: String
-    sales: [Sale!]! @derivedFrom(field: "token")
+type PaymentToken @entity {
+    id: ID! # token address
+    symbol: String!
+    name: String!
+    decimals: BigInt!
 }
 
 type Transfer @entity {
-    id: ID!
-    blockNumber: BigInt!
-    timestamp: BigInt!
+    id: ID! # txn hash : transfer log index
+    logIndex: BigInt!
     address: Bytes!
     from: Bytes!
     to: Bytes!
     value: BigInt!
+}
+
+type OrdersMatched @entity {
+    id: ID! # txn hash : orders matched log index
+    logIndex: BigInt!
+    address: Bytes!
+    buyHash: Bytes!
+    sellHash: Bytes!
+    maker: Bytes!
+    taker: Bytes!
+    price: BigInt!
+    metadata: Bytes
+}
+
+type Transaction @entity {
+    id: ID! # txn hash
+    unusedTransferLogs: [Transfer!]!
+    unusedOrdersMatchedLogs: [OrdersMatched!]!
+    sales: [Sale!]! @derivedFrom(field: "transaction")
 }
