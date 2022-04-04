@@ -8,7 +8,7 @@ dataSources:
     source:
       abi: OpenseaExchange
       address: "0x7be8076f4ea4a4ad08075c2508e481d6c946d12b"
-      startBlock: 14393375
+      startBlock: 10095470
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -35,7 +35,7 @@ dataSources:
     source:
       abi: OpenseaExchange
       address: "0x7f268357a8c2552623316e2562d90e642bb538e5"
-      startBlock: 14393375
+      startBlock: 10095470
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -61,7 +61,7 @@ dataSources:
     network: mainnet
     source:
       abi: ERC721
-      startBlock: 14393375
+      startBlock: 10095470
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
