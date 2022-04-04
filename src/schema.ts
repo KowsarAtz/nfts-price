@@ -16,21 +16,20 @@ export class Sale extends Entity {
     super();
     this.set("id", Value.fromString(id));
 
-    // this.set("blockNumber", Value.fromBigInt(BigInt.zero()));
-    // this.set("timestamp", Value.fromBigInt(BigInt.zero()));
-    // this.set("paymentToken", Value.fromString(""));
-    // this.set("transaction", Value.fromString(""));
-    // this.set("usdtPrice", Value.fromBigInt(BigInt.zero()));
-    // this.set("collection", Value.fromBytes(Bytes.empty()));
-    // this.set("seller", Value.fromBytes(Bytes.empty()));
-    // this.set("buyer", Value.fromBytes(Bytes.empty()));
-    // this.set("tokenId", Value.fromBigInt(BigInt.zero()));
-    // this.set("exchange", Value.fromBytes(Bytes.empty()));
-    // this.set("buyHash", Value.fromBytes(Bytes.empty()));
-    // this.set("sellHash", Value.fromBytes(Bytes.empty()));
-    // this.set("maker", Value.fromBytes(Bytes.empty()));
-    // this.set("taker", Value.fromBytes(Bytes.empty()));
-    // this.set("price", Value.fromBigInt(BigInt.zero()));
+    this.set("blockNumber", Value.fromBigInt(BigInt.zero()));
+    this.set("timestamp", Value.fromBigInt(BigInt.zero()));
+    this.set("paymentToken", Value.fromString(""));
+    this.set("transaction", Value.fromString(""));
+    this.set("collection", Value.fromBytes(Bytes.empty()));
+    this.set("seller", Value.fromBytes(Bytes.empty()));
+    this.set("buyer", Value.fromBytes(Bytes.empty()));
+    this.set("tokenId", Value.fromBigInt(BigInt.zero()));
+    this.set("exchange", Value.fromBytes(Bytes.empty()));
+    this.set("buyHash", Value.fromBytes(Bytes.empty()));
+    this.set("sellHash", Value.fromBytes(Bytes.empty()));
+    this.set("maker", Value.fromBytes(Bytes.empty()));
+    this.set("taker", Value.fromBytes(Bytes.empty()));
+    this.set("price", Value.fromBigInt(BigInt.zero()));
   }
 
   save(): void {
@@ -94,13 +93,21 @@ export class Sale extends Entity {
     this.set("transaction", Value.fromString(value));
   }
 
-  get usdtPrice(): BigInt {
+  get usdtPrice(): BigInt | null {
     let value = this.get("usdtPrice");
-    return value!.toBigInt();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
   }
 
-  set usdtPrice(value: BigInt) {
-    this.set("usdtPrice", Value.fromBigInt(value));
+  set usdtPrice(value: BigInt | null) {
+    if (!value) {
+      this.unset("usdtPrice");
+    } else {
+      this.set("usdtPrice", Value.fromBigInt(<BigInt>value));
+    }
   }
 
   get collection(): Bytes {
@@ -216,9 +223,9 @@ export class PaymentToken extends Entity {
     super();
     this.set("id", Value.fromString(id));
 
-    // this.set("symbol", Value.fromString(""));
-    // this.set("name", Value.fromString(""));
-    // this.set("decimals", Value.fromBigInt(BigInt.zero()));
+    this.set("symbol", Value.fromString(""));
+    this.set("name", Value.fromString(""));
+    this.set("decimals", Value.fromBigInt(BigInt.zero()));
   }
 
   save(): void {
@@ -279,11 +286,11 @@ export class Transfer extends Entity {
     super();
     this.set("id", Value.fromString(id));
 
-    // this.set("logIndex", Value.fromBigInt(BigInt.zero()));
-    // this.set("address", Value.fromBytes(Bytes.empty()));
-    // this.set("from", Value.fromBytes(Bytes.empty()));
-    // this.set("to", Value.fromBytes(Bytes.empty()));
-    // this.set("value", Value.fromBigInt(BigInt.zero()));
+    this.set("logIndex", Value.fromBigInt(BigInt.zero()));
+    this.set("address", Value.fromBytes(Bytes.empty()));
+    this.set("from", Value.fromBytes(Bytes.empty()));
+    this.set("to", Value.fromBytes(Bytes.empty()));
+    this.set("value", Value.fromBigInt(BigInt.zero()));
   }
 
   save(): void {
@@ -361,38 +368,36 @@ export class Transfer extends Entity {
   }
 }
 
-export class OrdersMatched extends Entity {
+export class ERC20Transfer extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
 
-    // this.set("logIndex", Value.fromBigInt(BigInt.zero()));
-    // this.set("address", Value.fromBytes(Bytes.empty()));
-    // this.set("buyHash", Value.fromBytes(Bytes.empty()));
-    // this.set("sellHash", Value.fromBytes(Bytes.empty()));
-    // this.set("maker", Value.fromBytes(Bytes.empty()));
-    // this.set("taker", Value.fromBytes(Bytes.empty()));
-    // this.set("price", Value.fromBigInt(BigInt.zero()));
+    this.set("logIndex", Value.fromBigInt(BigInt.zero()));
+    this.set("address", Value.fromBytes(Bytes.empty()));
+    this.set("from", Value.fromBytes(Bytes.empty()));
+    this.set("to", Value.fromBytes(Bytes.empty()));
+    this.set("value", Value.fromBigInt(BigInt.zero()));
   }
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save OrdersMatched entity without an ID");
+    assert(id != null, "Cannot save ERC20Transfer entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type OrdersMatched must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type ERC20Transfer must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("OrdersMatched", id.toString(), this);
+      store.set("ERC20Transfer", id.toString(), this);
     }
   }
 
   remove(): void {
-    store.remove("OrdersMatched", this.id);
+    store.remove("ERC20Transfer", this.id);
   }
 
-  static load(id: string): OrdersMatched | null {
-    return changetype<OrdersMatched | null>(store.get("OrdersMatched", id));
+  static load(id: string): ERC20Transfer | null {
+    return changetype<ERC20Transfer | null>(store.get("ERC20Transfer", id));
   }
 
   get id(): string {
@@ -422,66 +427,31 @@ export class OrdersMatched extends Entity {
     this.set("address", Value.fromBytes(value));
   }
 
-  get buyHash(): Bytes {
-    let value = this.get("buyHash");
+  get from(): Bytes {
+    let value = this.get("from");
     return value!.toBytes();
   }
 
-  set buyHash(value: Bytes) {
-    this.set("buyHash", Value.fromBytes(value));
+  set from(value: Bytes) {
+    this.set("from", Value.fromBytes(value));
   }
 
-  get sellHash(): Bytes {
-    let value = this.get("sellHash");
+  get to(): Bytes {
+    let value = this.get("to");
     return value!.toBytes();
   }
 
-  set sellHash(value: Bytes) {
-    this.set("sellHash", Value.fromBytes(value));
+  set to(value: Bytes) {
+    this.set("to", Value.fromBytes(value));
   }
 
-  get maker(): Bytes {
-    let value = this.get("maker");
-    return value!.toBytes();
-  }
-
-  set maker(value: Bytes) {
-    this.set("maker", Value.fromBytes(value));
-  }
-
-  get taker(): Bytes {
-    let value = this.get("taker");
-    return value!.toBytes();
-  }
-
-  set taker(value: Bytes) {
-    this.set("taker", Value.fromBytes(value));
-  }
-
-  get price(): BigInt {
-    let value = this.get("price");
+  get value(): BigInt {
+    let value = this.get("value");
     return value!.toBigInt();
   }
 
-  set price(value: BigInt) {
-    this.set("price", Value.fromBigInt(value));
-  }
-
-  get metadata(): Bytes | null {
-    let value = this.get("metadata");
-    if (!value || value.kind == ValueKind.NULL) {
-      return null;
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set metadata(value: Bytes | null) {
-    if (!value) {
-      this.unset("metadata");
-    } else {
-      this.set("metadata", Value.fromBytes(<Bytes>value));
-    }
+  set value(value: BigInt) {
+    this.set("value", Value.fromBigInt(value));
   }
 }
 
@@ -491,7 +461,7 @@ export class Transaction extends Entity {
     this.set("id", Value.fromString(id));
 
     this.set("unusedTransferLogs", Value.fromStringArray(new Array(0)));
-    this.set("unusedOrdersMatchedLogs", Value.fromStringArray(new Array(0)));
+    this.set("unusedERC20TransferLogs", Value.fromStringArray(new Array(0)));
   }
 
   save(): void {
@@ -528,12 +498,21 @@ export class Transaction extends Entity {
     this.set("unusedTransferLogs", Value.fromStringArray(value));
   }
 
-  get unusedOrdersMatchedLogs(): Array<string> {
-    let value = this.get("unusedOrdersMatchedLogs");
+  get unusedERC20TransferLogs(): Array<string> {
+    let value = this.get("unusedERC20TransferLogs");
     return value!.toStringArray();
   }
 
-  set unusedOrdersMatchedLogs(value: Array<string>) {
-    this.set("unusedOrdersMatchedLogs", Value.fromStringArray(value));
+  set unusedERC20TransferLogs(value: Array<string>) {
+    this.set("unusedERC20TransferLogs", Value.fromStringArray(value));
+  }
+
+  get sales(): Array<string> {
+    let value = this.get("sales");
+    return value!.toStringArray();
+  }
+
+  set sales(value: Array<string>) {
+    this.set("sales", Value.fromStringArray(value));
   }
 }

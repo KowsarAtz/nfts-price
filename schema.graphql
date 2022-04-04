@@ -36,21 +36,18 @@ type Transfer @entity {
     value: BigInt!
 }
 
-type OrdersMatched @entity {
-    id: ID! # txn hash : orders matched log index
+type ERC20Transfer @entity {
+    id: ID! # txn hash : transfer log index
     logIndex: BigInt!
     address: Bytes!
-    buyHash: Bytes!
-    sellHash: Bytes!
-    maker: Bytes!
-    taker: Bytes!
-    price: BigInt!
-    metadata: Bytes
+    from: Bytes!
+    to: Bytes!
+    value: BigInt!
 }
 
 type Transaction @entity {
     id: ID! # txn hash
     unusedTransferLogs: [Transfer!]!
-    unusedOrdersMatchedLogs: [OrdersMatched!]!
+    unusedERC20TransferLogs: [ERC20Transfer!]!
     sales: [Sale!]! @derivedFrom(field: "transaction")
 }

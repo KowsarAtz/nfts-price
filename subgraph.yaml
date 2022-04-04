@@ -8,7 +8,7 @@ dataSources:
     source:
       abi: OpenseaExchange
       address: "0x7be8076f4ea4a4ad08075c2508e481d6c946d12b"
-      startBlock: 10095470
+      startBlock: 14296583
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -35,7 +35,7 @@ dataSources:
     source:
       abi: OpenseaExchange
       address: "0x7f268357a8c2552623316e2562d90e642bb538e5"
-      startBlock: 10095470
+      startBlock: 14296583
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -52,16 +52,13 @@ dataSources:
       eventHandlers:
         - event: OrdersMatched(bytes32,bytes32,indexed address,indexed address,uint256,indexed bytes32)
           handler: handleOrdersMatched
-      callHandlers:
-        - function: atomicMatch_(address[14],uint256[18],uint8[8],bytes,bytes,bytes,bytes,bytes,bytes,uint8[2],bytes32[5])
-          handler: handleAtomicMatch
       file: ./src/mapping.ts
   - kind: ethereum
     name: ERC721
     network: mainnet
     source:
       abi: ERC721
-      startBlock: 10095470
+      startBlock: 14296583
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -74,4 +71,23 @@ dataSources:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
+      file: ./src/mapping.ts
+  - kind: ethereum
+    name: ERC20
+    network: mainnet
+    source:
+      abi: ERC20
+      startBlock: 14296583
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Sale
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleERC20Transfer
       file: ./src/mapping.ts

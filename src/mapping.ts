@@ -6,10 +6,11 @@ import {
     OrdersMatched as OrdersMatchedEvent,
 } from "../generated/OpenseaExchange";
 import { Transfer as TransferEvent } from "../generated/ERC721";
+import { Transfer as ERC20TransferEvent } from "../generated/ERC20";
 import {
     Sale,
     Transfer,
-    OrdersMatched,
+    ERC20Transfer,
     Transaction,
     PaymentToken,
 } from "./schema";
@@ -25,6 +26,40 @@ const USDT_ADDRESS = Address.fromString(
 const WETH_ADDRESS = Address.fromString(
     "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 );
+
+export function handleERC20Transfer(event: ERC20TransferEvent): void {
+    const txHash = event.transaction.hash.toHexString();
+    log.debug(`handleERC20Transfer with txHash ${txHash}`, []);
+    const logIndex = event.logIndex;
+
+    const id = `${txHash}:${logIndex}`;
+
+    if (ERC20Transfer.load(id) != null) {
+        log.warning(`ERC20Transfer ${id} already exists`, []);
+        return;
+    }
+
+    let transaction: Transaction | null = Transaction.load(txHash);
+    if (transaction == null) {
+        transaction = new Transaction(txHash);
+    }
+    const txERC20TransferLogs = cloneArray(transaction.unusedERC20TransferLogs);
+
+    const transfer = new ERC20Transfer(id);
+    transfer.logIndex = logIndex;
+    transfer.address = event.address;
+    transfer.from = event.params.src;
+    transfer.to = event.params.dst;
+    transfer.value = event.params.wad;
+
+    transfer.save();
+    log.info(`ERC20Transfer ${id} stored`, []);
+
+    txERC20TransferLogs.push(id);
+
+    transaction.unusedERC20TransferLogs = txERC20TransferLogs;
+    transaction.save();
+}
 
 export function handleTransfer(event: TransferEvent): void {
     const txHash = event.transaction.hash.toHexString();
@@ -93,100 +128,70 @@ export function handleOrdersMatched(event: OrdersMatchedEvent): void {
         return;
     }
 
-    if (OrdersMatched.load(id) != null) {
-        log.warning(`OrdersMatched ${id} already exists`, []);
+    if (Sale.load(id) != null) {
+        log.warning(`Sale ${id} already exists`, []);
         return;
     }
 
-    let transaction: Transaction | null = Transaction.load(txHash);
-    if (transaction == null) {
-        transaction = new Transaction(txHash);
-    }
-    const txOrdersMatchedLogs = cloneArray(transaction.unusedOrdersMatchedLogs);
-
-    const ordersMatched = new OrdersMatched(id);
-    ordersMatched.logIndex = logIndex;
-    ordersMatched.address = event.address;
-    ordersMatched.buyHash = event.params.buyHash;
-    ordersMatched.sellHash = event.params.sellHash;
-    ordersMatched.maker = event.params.maker;
-    ordersMatched.taker = event.params.taker;
-    ordersMatched.price = event.params.price;
-    ordersMatched.metadata = event.params.metadata;
-
-    ordersMatched.save();
-    log.info(`OrdersMatched ${id} stored`, []);
-
-    txOrdersMatchedLogs.push(id);
-    transaction.unusedOrdersMatchedLogs = txOrdersMatchedLogs;
-    transaction.save();
-}
-
-export function handleAtomicMatch(call: AtomicMatchCall): void {
-    const txHash = call.transaction.hash.toHexString();
-    log.debug(`handleAtomicMatch with txHash ${txHash}`, []);
     const transaction: Transaction | null = Transaction.load(txHash);
-
     if (transaction == null) {
         log.warning(
-            `Could not find transaction ${txHash} in handleAtomicMatch`,
+            `Could not find transaction ${txHash} in handleOrdersMatched`,
             []
         );
         return;
     }
 
     const transferLogs = cloneArray(transaction.unusedTransferLogs);
-    const ordersMatchedLogs = cloneArray(transaction.unusedOrdersMatchedLogs);
+    const erc20TransferLogs = cloneArray(transaction.unusedERC20TransferLogs);
 
     if (transferLogs.length == 0) {
         log.warning(
-            `Not enough Transfer logs to process in handleAtomicMatch`,
+            `Not enough Transfer logs to process in handleOrdersMatched`,
             []
         );
         return;
     }
 
-    if (ordersMatchedLogs.length == 0) {
-        log.warning(
-            `Not enough OrdersMatched logs to process in handleAtomicMatch`,
-            []
-        );
-        return;
-    }
+    // if (erc20TransferLogs.length == 0) {
+    //     log.warning(
+    //         `Not enough ERC20Transfer logs to process in handleOrdersMatched`,
+    //         []
+    //     );
+    //     return;
+    // }
 
-    const ordersMatchedLogId = ordersMatchedLogs.splice(0, 1)[0];
-    const ordersMatchedLog = OrdersMatched.load(ordersMatchedLogId);
-    if (ordersMatchedLog == null) {
-        log.warning(
-            `Could not retrieve OrdersMatched ${ordersMatchedLogId} to process in handleAtomicMatch`,
-            []
-        );
-        return;
-    }
+    const erc20TransferLog = erc20TransferLogs.length != 0 ? ERC20Transfer.load(erc20TransferLogs.splice(0, 1)[0]) : null;
+    // if (erc20TransferLog == null) {
+    //     log.warning(
+    //         `Could not retrieve ERC20Transfer ${erc20TransferLogId} to process in handleOrdersMatched`,
+    //         []
+    //     );
+    // }
 
     const transferLogId = transferLogs.splice(0, 1)[0];
     const transferLog = Transfer.load(transferLogId);
     if (transferLog == null) {
         log.warning(
-            `Could not retrieve Transfer ${transferLogId} to process in handleAtomicMatch`,
+            `Could not retrieve Transfer ${transferLogId} to process in handleOrdersMatched`,
             []
         );
         return;
     }
 
     if (
-        !BigInt.fromString(ordersMatchedLog.logIndex.toString())
+        !BigInt.fromString(logIndex.toString())
             .minus(ONE)
             .equals(transferLog.logIndex)
     ) {
         log.warning(
-            `Could not find matching OrdersMatched and Transfer logs to process in handleAtomicMatch`,
+            `Could not find matching Transfer log to process in handleOrdersMatched`,
             []
         );
         return;
     }
 
-    const paymentTokenId = call.inputs.addrs[6].toHexString();
+    const paymentTokenId = erc20TransferLog != null ? erc20TransferLog.address.toHexString() : NULL_ADDRESS;
     if (PaymentToken.load(paymentTokenId) == null) {
         if (!createPaymentToken(paymentTokenId)) {
             log.warning(`Could not create PaymentToken ${paymentTokenId}`, []);
@@ -194,14 +199,14 @@ export function handleAtomicMatch(call: AtomicMatchCall): void {
         }
     }
 
-    const sale = new Sale(ordersMatchedLog.id);
+    const sale = new Sale(id);
 
-    sale.blockNumber = call.block.number;
-    sale.timestamp = call.block.timestamp;
+    sale.blockNumber = event.block.number;
+    sale.timestamp = event.block.timestamp;
     sale.paymentToken = paymentTokenId;
     sale.transaction = transaction.id;
 
-    if (!setUSDTPrice(sale, paymentTokenId, ordersMatchedLog.price)) {
+    if (!setUSDTPrice(sale, paymentTokenId, event.params.price)) {
         log.warning(`Could not calculate usdt price for sale ${sale.id}`, []);
     }
 
@@ -210,21 +215,22 @@ export function handleAtomicMatch(call: AtomicMatchCall): void {
     sale.buyer = transferLog.to;
     sale.tokenId = transferLog.value;
 
-    sale.exchange = ordersMatchedLog.address;
-    sale.buyHash = ordersMatchedLog.buyHash;
-    sale.sellHash = ordersMatchedLog.sellHash;
-    sale.maker = ordersMatchedLog.maker;
-    sale.taker = ordersMatchedLog.taker;
-    sale.price = ordersMatchedLog.price;
-    sale.metadata = ordersMatchedLog.metadata;
+    sale.exchange = event.address;
+    sale.buyHash = event.params.buyHash;
+    sale.sellHash = event.params.sellHash;
+    sale.maker = event.params.maker;
+    sale.taker = event.params.taker;
+    sale.price = event.params.price;
+    sale.metadata = event.params.metadata;
 
     sale.save();
     log.info(`Sale ${sale.id} stored`, []);
 
     transferLog.remove();
-    ordersMatchedLog.remove();
+    if (erc20TransferLog != null)
+        erc20TransferLog.remove(); 
     transaction.unusedTransferLogs = transferLogs;
-    transaction.unusedOrdersMatchedLogs = ordersMatchedLogs;
+    transaction.unusedERC20TransferLogs = erc20TransferLogs;
     transaction.save();
 }
 
