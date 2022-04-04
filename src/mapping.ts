@@ -275,18 +275,38 @@ function setUSDTPrice(sale: Sale, paymentTokenId: string, price: BigInt): bool {
     ]);
 
     if (amounts.reverted || amounts.value.length != 2) {
+        if (paymentTokenAddress == WETH_ADDRESS) {
+            log.debug(
+                `Could not retrieve WETH price for sale ${sale.id} (1)`,
+                []
+            );
+            return false;
+        }
+
         amounts = uniswapRouterContract.try_getAmountsOut(price, [
             paymentTokenAddress,
             WETH_ADDRESS,
         ]);
-        if (amounts.reverted || amounts.value.length != 2) return false;
+        if (amounts.reverted || amounts.value.length != 2) {
+            log.debug(
+                `Could not retrieve payment token price in WETH for sale ${sale.id}`,
+                []
+            );
+            return false;
+        }
 
         amounts = uniswapRouterContract.try_getAmountsOut(amounts.value[1], [
             WETH_ADDRESS,
             USDT_ADDRESS,
         ]);
+        if (amounts.reverted || amounts.value.length != 2) {
+            log.debug(
+                `Could not retrieve WETH price for sale ${sale.id} (2)`,
+                []
+            );
+            return false;
+        }
     }
-    if (amounts.reverted || amounts.value.length != 2) return false;
 
     log.debug(
         `Sale ${sale.id} getAmountsOut results: ${amounts.value[0]}, ${amounts.value[1]}`,
