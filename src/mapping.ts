@@ -201,14 +201,8 @@ export function handleAtomicMatch(call: AtomicMatchCall): void {
     sale.paymentToken = paymentTokenId;
     sale.transaction = transaction.id;
 
-    const usdtPriceAdded = setUSDTPrice(
-        sale,
-        paymentTokenId,
-        ordersMatchedLog.price
-    );
-    if (!usdtPriceAdded) {
+    if (!setUSDTPrice(sale, paymentTokenId, ordersMatchedLog.price)) {
         log.warning(`Could not calculate usdt price for sale ${sale.id}`, []);
-        return;
     }
 
     sale.collection = transferLog.address;
