@@ -261,7 +261,7 @@ function createPaymentToken(id: string): bool {
 
 function setUSDTPrice(sale: Sale, paymentTokenId: string, price: BigInt): bool {
     if (price.isZero()) {
-        sale.price = price;
+        sale.usdtPrice = price;
         return true;
     }
 
@@ -271,7 +271,7 @@ function setUSDTPrice(sale: Sale, paymentTokenId: string, price: BigInt): bool {
             : Address.fromString(paymentTokenId);
 
     if (paymentTokenAddress == USDT_ADDRESS) {
-        sale.price = price;
+        sale.usdtPrice = price;
         return true;
     }
 
@@ -286,7 +286,7 @@ function setUSDTPrice(sale: Sale, paymentTokenId: string, price: BigInt): bool {
             WETH_ADDRESS,
         ]);
         if (amounts.reverted || amounts.value.length != 2) return false;
-        
+
         amounts = uniswapRouterContract.try_getAmountsOut(amounts.value[1], [
             WETH_ADDRESS,
             USDT_ADDRESS,
