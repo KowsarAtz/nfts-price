@@ -140,7 +140,7 @@ export function handleAtomicMatch(call: AtomicMatchCall): void {
 
     if (transferLogs.length == 0) {
         log.warning(
-            `Not enough Transfer logs to process in handleAtomicMatch`,
+            `Not enough Transfer logs to process in handleAtomicMatch with txHash ${txHash}`,
             []
         );
         return;
@@ -148,13 +148,13 @@ export function handleAtomicMatch(call: AtomicMatchCall): void {
 
     if (ordersMatchedLogs.length == 0) {
         log.warning(
-            `Not enough OrdersMatched logs to process in handleAtomicMatch`,
+            `Not enough OrdersMatched logs to process in handleAtomicMatch with txHash ${txHash}`,
             []
         );
         return;
     }
 
-    const ordersMatchedLogId = ordersMatchedLogs.splice(0, 1)[0];
+    const ordersMatchedLogId = ordersMatchedLogs.pop();
     const ordersMatchedLog = OrdersMatched.load(ordersMatchedLogId);
     if (ordersMatchedLog == null) {
         log.warning(
@@ -164,7 +164,7 @@ export function handleAtomicMatch(call: AtomicMatchCall): void {
         return;
     }
 
-    const transferLogId = transferLogs.splice(0, 1)[0];
+    const transferLogId = transferLogs.pop();
     const transferLog = Transfer.load(transferLogId);
     if (transferLog == null) {
         log.warning(
