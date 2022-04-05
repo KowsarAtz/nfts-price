@@ -154,7 +154,7 @@ export function handleAtomicMatch(call: AtomicMatchCall): void {
         return;
     }
 
-    const ordersMatchedLogId = ordersMatchedLogs.pop();
+    const ordersMatchedLogId = ordersMatchedLogs.splice(0, 1)[0]
     const ordersMatchedLog = OrdersMatched.load(ordersMatchedLogId);
     if (ordersMatchedLog == null) {
         log.warning(
@@ -164,7 +164,7 @@ export function handleAtomicMatch(call: AtomicMatchCall): void {
         return;
     }
 
-    const transferLogId = transferLogs.pop();
+    const transferLogId = transferLogs.splice(0, 1)[0]
     const transferLog = Transfer.load(transferLogId);
     if (transferLog == null) {
         log.warning(
